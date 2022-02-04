@@ -1,3 +1,10 @@
+import {RulesEngine} from './rules-engine'
+
+import {Actions} from './rule-definitions/constants';
+import {rules} from './rule-definitions/drug-rules/rules';
+
+const MaxBenefit = 50;
+
 export class Drug {
   constructor(name, expiresIn, benefit) {
     this.name = name;
@@ -9,58 +16,59 @@ export class Drug {
 export class Pharmacy {
   constructor(drugs = []) {
     this.drugs = drugs;
+    this.engine = new RulesEngine(rules);
   }
-  updateBenefitValue() {
-    for (var i = 0; i < this.drugs.length; i++) {
-      if (
-        this.drugs[i].name != "Herbal Tea" &&
-        this.drugs[i].name != "Fervex"
-      ) {
-        if (this.drugs[i].benefit > 0) {
-          if (this.drugs[i].name != "Magic Pill") {
-            this.drugs[i].benefit = this.drugs[i].benefit - 1;
-          }
-        }
-      } else {
-        if (this.drugs[i].benefit < 50) {
-          this.drugs[i].benefit = this.drugs[i].benefit + 1;
-          if (this.drugs[i].name == "Fervex") {
-            if (this.drugs[i].expiresIn < 11) {
-              if (this.drugs[i].benefit < 50) {
-                this.drugs[i].benefit = this.drugs[i].benefit + 1;
-              }
-            }
-            if (this.drugs[i].expiresIn < 6) {
-              if (this.drugs[i].benefit < 50) {
-                this.drugs[i].benefit = this.drugs[i].benefit + 1;
-              }
-            }
-          }
-        }
-      }
-      if (this.drugs[i].name != "Magic Pill") {
-        this.drugs[i].expiresIn = this.drugs[i].expiresIn - 1;
-      }
-      if (this.drugs[i].expiresIn < 0) {
-        if (this.drugs[i].name != "Herbal Tea") {
-          if (this.drugs[i].name != "Fervex") {
-            if (this.drugs[i].benefit > 0) {
-              if (this.drugs[i].name != "Magic Pill") {
-                this.drugs[i].benefit = this.drugs[i].benefit - 1;
-              }
-            }
-          } else {
-            this.drugs[i].benefit =
-              this.drugs[i].benefit - this.drugs[i].benefit;
-          }
-        } else {
-          if (this.drugs[i].benefit < 50) {
-            this.drugs[i].benefit = this.drugs[i].benefit + 1;
-          }
-        }
-      }
-    }
 
+  updateBenefitValue() {
+    const engine = new RulesEngine(rules);
+    this.drugs.forEach(drug => {
+      const events = engine.evaluate({...drug, dayElapsed: true});
+      this.applyEventActionsToDrug(drug, events);
+    })
     return this.drugs;
+  }
+
+  getUpdatedBenefitValue(benefit, factor = 0) {
+    if (!factor) {
+      return benefit;
+    }
+    const updatedBenefit = benefit + factor;
+    if (updatedBenefit > MaxBenefit) {
+      return MaxBenefit;
+    }
+    if (updatedBenefit < 0) {
+      return 0;
+    }
+    console.log('foo')
+    return updatedBenefit;
+  }
+
+  applyEventActionsToDrug(drug, events) {
+    events.forEach(event => {
+      const factor = event.params && event.params.factor;
+      switch (event.type) {
+        case Actions.SetBenefit:
+          drug.benefit = this.getUpdatedBenefitValue(event.params.newValue, 0);
+          break;
+        case Actions.UpdateBenefit:
+          drug.benefit = this.getUpdatedBenefitValue(drug.benefit, factor);
+          break;
+        case Actions.DecreaseExpiration: {
+          const willExpire = drug.expiresIn === 0;
+          if (willExpire) {
+            drug.expiresIn -= 1;
+            this.engine.on('expired', drug);
+          } else {
+            drug.expiresIn -= 1;
+          }
+          break;
+        }
+        case Actions.NOOP:
+          break;
+        default:
+          console.error('Cannot handle action type', event.type);
+      }
+    })
+    return drug;
   }
 }
