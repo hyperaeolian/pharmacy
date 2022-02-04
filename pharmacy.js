@@ -39,7 +39,6 @@ export class Pharmacy {
     if (updatedBenefit < 0) {
       return 0;
     }
-    console.log('foo')
     return updatedBenefit;
   }
 

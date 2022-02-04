@@ -30,7 +30,6 @@ export class RulesEngine {
     evaluateCondition(target, condition){
         const {fact, operator, value} = condition;
         if (target[fact] == null) {
-            console.log('ERROR', target, fact);
             throw new Error('Target does not contain fact: ', target, fact);
         }
         switch(operator){
