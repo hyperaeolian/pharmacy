@@ -53,13 +53,7 @@ export class Pharmacy {
           drug.benefit = this.getUpdatedBenefitValue(drug.benefit, factor);
           break;
         case Actions.DecreaseExpiration: {
-          const willExpire = drug.expiresIn === 0;
-          if (willExpire) {
-            drug.expiresIn -= 1;
-            this.engine.on('expired', drug);
-          } else {
-            drug.expiresIn -= 1;
-          }
+          drug.expiresIn -= 1;
           break;
         }
         case Actions.NOOP:

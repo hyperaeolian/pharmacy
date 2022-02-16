@@ -1,6 +1,11 @@
 export const IsExpiredFact = {
     fact: 'expiresIn',
-    operator: 'lessThan',
+    operator: 'lessThanInclusive',
+    value: 0
+};
+export const IsNotExpiredFact = {
+    fact: 'expiresIn',
+    operator: 'greaterThan',
     value: 0
 };
 export const DayElapsedFact = {

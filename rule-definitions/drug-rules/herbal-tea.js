@@ -1,7 +1,8 @@
 import {createUpdateBenefitEvent} from '../utils';
 import {
     DayElapsedFact,
-    IsExpiredFact
+    IsExpiredFact,
+    IsNotExpiredFact
 } from '../common-facts';
 
 // is 'Herbal Tea' drug
@@ -22,7 +23,7 @@ const HerbalTeaExpiredRule = {
 // herbal tea increases as it nears expiration
 const HerbalTeaBenefitRule = {
     conditions: {
-        all: [IsHerbalTeaFact, DayElapsedFact]
+        all: [IsHerbalTeaFact, DayElapsedFact, IsNotExpiredFact]
     },
     event: createUpdateBenefitEvent(1)
 };

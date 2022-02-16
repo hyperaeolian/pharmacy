@@ -49,16 +49,4 @@ export class RulesEngine {
                 throw new Error("Unsupported operator: ", operator);
         }
     }
-
-    on(event, drug) {
-        switch (event) {
-            case 'expired':
-                if (drug.name === 'Herbal Tea') {
-                    drug.benefit += 1;
-                }
-                break;
-            default:
-                throw new Error('Undefined event', event);
-        }
-    }
 }
